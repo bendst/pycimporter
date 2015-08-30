@@ -51,6 +51,11 @@ clean:
 	@rm -r $(BINDIR)/plugins
 	@echo "Cleanup"
 
+.PHONEY: cyth
+cyth:
+	cython $(SRCDIR)/*.pyx
+
+
 .PHONEY: remove
 remove: clean
 	@rm $(BINDIR)/$(TARGET)
