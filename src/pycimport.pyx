@@ -4,11 +4,11 @@ import sys
 import os
 
 
-cdef public void setEnv(char *pathToPlugins):
+cdef public void setEnv(char * pathToPlugins):
     st = pathToPlugins.decode("UTF-8")
-    s = [os.getcwd()+'/'+st]
-
+    s = [os.getcwd() + '/' + st]
     sys.path = s
+
 
 cdef public list listAttr(obj):
     result = []
@@ -18,6 +18,7 @@ cdef public list listAttr(obj):
     for i in dir(obj):
         result.append(i)
     return result
+
 
 cdef public bint isClass(obj):
     if obj is None:
@@ -30,12 +31,14 @@ cdef public bint isMethod(obj):
         return False
     return inspect.isroutine(obj)
 
+
 cdef public bint isModul(obj):
     if obj is None:
         return False
     return inspect.ismodule(obj)
 
-cdef public loadModule(char *nname):
+
+cdef public loadModule(char * nname):
     """ Load a python modul from current directory
     """
     name = nname.decode("UTF-8")
@@ -45,19 +48,22 @@ cdef public loadModule(char *nname):
     try:
         return importlib.import_module(name)
     except:
-        raise Exception(name+"could not be loaded")
+        raise Exception(name + "could not be loaded")
 
-cdef public bint callableMethod(obj,char *nname):
+
+cdef public bint callableMethod(obj, char * nname):
     name = nname.decode("UTF-8")
     method = getattr(obj, name)
     if isMethod(method):
         return True
     return False
 
-cdef public getParameter(obj, char *nname):
+
+cdef public list getParameter(obj, char * nname):
     name = nname.decode("UTF-8")
     method = getattr(obj, name)
     return inspect.getargspec(method).args
+
 
 cdef public bint hasParameter(obj, nname):
     name = nname.decode("UTF-8")
@@ -65,17 +71,20 @@ cdef public bint hasParameter(obj, nname):
         return True
     return False
 
-cdef public callMethod(obj, char *nname):
+
+cdef public callMethod(obj, char * nname):
     name = nname.decode("UTF-8")
     method = getattr(obj, name)
     if isMethod(method):
         return method()
     return None
 
-cdef public callMethodArgs(obj, char* nname, tuple args):
+
+cdef public callMethodArgs(obj, char * nname, tuple args):
     name = nname.decode("UTF-8")
-    a = getParameter(obj, name)
+    a = getParameter(obj, nname)
     method = getattr(obj, name)
+
     if len(a) != len(args):
         return None
     if isMethod(method):

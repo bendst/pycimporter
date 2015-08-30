@@ -18,6 +18,7 @@
   #define DL_IMPORT(_T) _T
 #endif
 
+__PYX_EXTERN_C DL_IMPORT(PyObject) *toTuple(PyObject *);
 __PYX_EXTERN_C DL_IMPORT(void) setEnv(char *);
 __PYX_EXTERN_C DL_IMPORT(PyObject) *listAttr(PyObject *);
 __PYX_EXTERN_C DL_IMPORT(int) isClass(PyObject *);
