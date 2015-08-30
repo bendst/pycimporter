@@ -3,11 +3,12 @@ import inspect
 import sys
 import os
 
+
 cdef public void setEnv(char *pathToPlugins):
     st = pathToPlugins.decode("UTF-8")
-    s = os.getcwd()+'/'+st
+    s = [os.getcwd()+'/'+st]
 
-    sys.path.append(s)
+    sys.path = s
 
 cdef public list listAttr(obj):
     result = []
@@ -34,9 +35,10 @@ cdef public bint isModul(obj):
         return False
     return inspect.ismodule(obj)
 
-cdef public loadModule(char *name):
+cdef public loadModule(char *nname):
     """ Load a python modul from current directory
     """
+    name = nname.decode("UTF-8")
     if not isinstance(name, str):
         return None
 
@@ -45,28 +47,33 @@ cdef public loadModule(char *name):
     except:
         raise Exception(name+"could not be loaded")
 
-cdef public bint callableMethod(obj,char *name):
+cdef public bint callableMethod(obj,char *nname):
+    name = nname.decode("UTF-8")
     method = getattr(obj, name)
     if isMethod(method):
         return True
     return False
 
-cdef public getParameter(obj, char *name):
+cdef public getParameter(obj, char *nname):
+    name = nname.decode("UTF-8")
     method = getattr(obj, name)
     return inspect.getargspec(method).args
 
-cdef public bint hasParameter(obj, name):
+cdef public bint hasParameter(obj, nname):
+    name = nname.decode("UTF-8")
     if getParameter(obj, name):
         return True
     return False
 
-cdef public callMethod(obj, char *name):
+cdef public callMethod(obj, char *nname):
+    name = nname.decode("UTF-8")
     method = getattr(obj, name)
     if isMethod(method):
         return method()
     return None
 
-cdef public callMethodArgs(obj, char* name, tuple args):
+cdef public callMethodArgs(obj, char* nname, tuple args):
+    name = nname.decode("UTF-8")
     a = getParameter(obj, name)
     method = getattr(obj, name)
     if len(a) != len(args):

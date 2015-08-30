@@ -557,6 +557,30 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
 #endif
 
 #if CYTHON_COMPILING_IN_CPYTHON
+#define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o,n,NULL)
+static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value) {
+    PyTypeObject* tp = Py_TYPE(obj);
+    if (likely(tp->tp_setattro))
+        return tp->tp_setattro(obj, attr_name, value);
+#if PY_MAJOR_VERSION < 3
+    if (likely(tp->tp_setattr))
+        return tp->tp_setattr(obj, PyString_AS_STRING(attr_name), value);
+#endif
+    return PyObject_SetAttr(obj, attr_name, value);
+}
+#else
+#define __Pyx_PyObject_DelAttrStr(o,n)   PyObject_DelAttr(o,n)
+#define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
+#endif
+
+static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb);
+static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb);
+
+static void __Pyx_WriteUnraisable(const char *name, int clineno,
+                                  int lineno, const char *filename,
+                                  int full_traceback, int nogil);
+
+#if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
     PyListObject* L = (PyListObject*) list;
     Py_ssize_t len = Py_SIZE(list);
@@ -571,17 +595,6 @@ static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
 #else
 #define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
 #endif
-
-static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg);
-
-static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x);
-
-static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb);
-static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb);
-
-static void __Pyx_WriteUnraisable(const char *name, int clineno,
-                                  int lineno, const char *filename,
-                                  int full_traceback, int nogil);
 
 static CYTHON_INLINE void __Pyx_ExceptionSave(PyObject **type, PyObject **value, PyObject **tb);
 static void __Pyx_ExceptionReset(PyObject *type, PyObject *value, PyObject *tb);
@@ -650,7 +663,8 @@ static char __pyx_k_args[] = "args";
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_path[] = "path";
 static char __pyx_k_test[] = "__test__";
-static char __pyx_k_append[] = "append";
+static char __pyx_k_UTF_8[] = "UTF-8";
+static char __pyx_k_decode[] = "decode";
 static char __pyx_k_getcwd[] = "getcwd";
 static char __pyx_k_import[] = "__import__";
 static char __pyx_k_inspect[] = "inspect";
@@ -664,9 +678,10 @@ static char __pyx_k_import_module[] = "import_module";
 static char __pyx_k_could_not_be_loaded[] = "could not be loaded";
 static PyObject *__pyx_kp_s_;
 static PyObject *__pyx_n_s_Exception;
-static PyObject *__pyx_n_s_append;
+static PyObject *__pyx_kp_s_UTF_8;
 static PyObject *__pyx_n_s_args;
 static PyObject *__pyx_kp_s_could_not_be_loaded;
+static PyObject *__pyx_n_s_decode;
 static PyObject *__pyx_n_s_getargspec;
 static PyObject *__pyx_n_s_getcwd;
 static PyObject *__pyx_n_s_import;
@@ -681,13 +696,14 @@ static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_n_s_path;
 static PyObject *__pyx_n_s_sys;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_tuple__2;
 
 /* "pycimport.pyx":6
  * import os
  * 
  * cdef public void setEnv(char *pathToPlugins):             # <<<<<<<<<<<<<<
  *     st = pathToPlugins.decode("UTF-8")
- *     s = os.getcwd()+'/'+st
+ *     s = [os.getcwd()+'/'+st]
  */
 
 void setEnv(char *__pyx_v_pathToPlugins) {
@@ -697,7 +713,6 @@ void setEnv(char *__pyx_v_pathToPlugins) {
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  int __pyx_t_4;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -707,7 +722,7 @@ void setEnv(char *__pyx_v_pathToPlugins) {
  * 
  * cdef public void setEnv(char *pathToPlugins):
  *     st = pathToPlugins.decode("UTF-8")             # <<<<<<<<<<<<<<
- *     s = os.getcwd()+'/'+st
+ *     s = [os.getcwd()+'/'+st]
  * 
  */
   __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_pathToPlugins, 0, strlen(__pyx_v_pathToPlugins), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -718,9 +733,9 @@ void setEnv(char *__pyx_v_pathToPlugins) {
   /* "pycimport.pyx":8
  * cdef public void setEnv(char *pathToPlugins):
  *     st = pathToPlugins.decode("UTF-8")
- *     s = os.getcwd()+'/'+st             # <<<<<<<<<<<<<<
+ *     s = [os.getcwd()+'/'+st]             # <<<<<<<<<<<<<<
  * 
- *     sys.path.append(s)
+ *     sys.path = s
  */
   __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
@@ -751,22 +766,24 @@ void setEnv(char *__pyx_v_pathToPlugins) {
   __pyx_t_1 = PyNumber_Add(__pyx_t_3, __pyx_v_st); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_s = __pyx_t_1;
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
+  __pyx_v_s = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
 
   /* "pycimport.pyx":10
- *     s = os.getcwd()+'/'+st
+ *     s = [os.getcwd()+'/'+st]
  * 
- *     sys.path.append(s)             # <<<<<<<<<<<<<<
+ *     sys.path = s             # <<<<<<<<<<<<<<
  * 
  * cdef public list listAttr(obj):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_path); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Append(__pyx_t_3, __pyx_v_s); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_t_3, __pyx_n_s_path, __pyx_v_s) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "pycimport.pyx":6
@@ -774,7 +791,7 @@ void setEnv(char *__pyx_v_pathToPlugins) {
  * 
  * cdef public void setEnv(char *pathToPlugins):             # <<<<<<<<<<<<<<
  *     st = pathToPlugins.decode("UTF-8")
- *     s = os.getcwd()+'/'+st
+ *     s = [os.getcwd()+'/'+st]
  */
 
   /* function exit code */
@@ -791,7 +808,7 @@ void setEnv(char *__pyx_v_pathToPlugins) {
 }
 
 /* "pycimport.pyx":12
- *     sys.path.append(s)
+ *     sys.path = s
  * 
  * cdef public list listAttr(obj):             # <<<<<<<<<<<<<<
  *     result = []
@@ -941,7 +958,7 @@ PyObject *listAttr(PyObject *__pyx_v_obj) {
   goto __pyx_L0;
 
   /* "pycimport.pyx":12
- *     sys.path.append(s)
+ *     sys.path = s
  * 
  * cdef public list listAttr(obj):             # <<<<<<<<<<<<<<
  *     result = []
@@ -1249,7 +1266,7 @@ int isModul(PyObject *__pyx_v_obj) {
  *         return False
  *     return inspect.ismodule(obj)             # <<<<<<<<<<<<<<
  * 
- * cdef public loadModule(char *name):
+ * cdef public loadModule(char *nname):
  */
   __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_inspect); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 35; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
@@ -1310,12 +1327,13 @@ int isModul(PyObject *__pyx_v_obj) {
 /* "pycimport.pyx":37
  *     return inspect.ismodule(obj)
  * 
- * cdef public loadModule(char *name):             # <<<<<<<<<<<<<<
+ * cdef public loadModule(char *nname):             # <<<<<<<<<<<<<<
  *     """ Load a python modul from current directory
  *     """
  */
 
-PyObject *loadModule(char *__pyx_v_name) {
+PyObject *loadModule(char *__pyx_v_nname) {
+  PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1336,19 +1354,28 @@ PyObject *loadModule(char *__pyx_v_name) {
   /* "pycimport.pyx":40
  *     """ Load a python modul from current directory
  *     """
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     if not isinstance(name, str):
+ *         return None
+ */
+  __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_nname, 0, strlen(__pyx_v_nname), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_name = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pycimport.pyx":41
+ *     """
+ *     name = nname.decode("UTF-8")
  *     if not isinstance(name, str):             # <<<<<<<<<<<<<<
  *         return None
  * 
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyString_Check(__pyx_t_1); 
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = PyString_Check(__pyx_v_name); 
   __pyx_t_3 = ((!(__pyx_t_2 != 0)) != 0);
   if (__pyx_t_3) {
 
-    /* "pycimport.pyx":41
- *     """
+    /* "pycimport.pyx":42
+ *     name = nname.decode("UTF-8")
  *     if not isinstance(name, str):
  *         return None             # <<<<<<<<<<<<<<
  * 
@@ -1359,16 +1386,16 @@ PyObject *loadModule(char *__pyx_v_name) {
     __pyx_r = Py_None;
     goto __pyx_L0;
 
-    /* "pycimport.pyx":40
- *     """ Load a python modul from current directory
+    /* "pycimport.pyx":41
  *     """
+ *     name = nname.decode("UTF-8")
  *     if not isinstance(name, str):             # <<<<<<<<<<<<<<
  *         return None
  * 
  */
   }
 
-  /* "pycimport.pyx":43
+  /* "pycimport.pyx":44
  *         return None
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -1382,7 +1409,7 @@ PyObject *loadModule(char *__pyx_v_name) {
     __Pyx_XGOTREF(__pyx_t_6);
     /*try:*/ {
 
-      /* "pycimport.pyx":44
+      /* "pycimport.pyx":45
  * 
  *     try:
  *         return importlib.import_module(name)             # <<<<<<<<<<<<<<
@@ -1390,44 +1417,41 @@ PyObject *loadModule(char *__pyx_v_name) {
  *         raise Exception(name+"could not be loaded")
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_importlib); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+      __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_importlib); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_import_module); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_import_module); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_9 = NULL;
+      __pyx_t_7 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_8))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
-        if (likely(__pyx_t_9)) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_8);
+        if (likely(__pyx_t_7)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
-          __Pyx_INCREF(__pyx_t_9);
+          __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_8, function);
         }
       }
-      if (!__pyx_t_9) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      if (!__pyx_t_7) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9); __pyx_t_9 = NULL;
-        __Pyx_GIVEREF(__pyx_t_7);
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_7);
-        __pyx_t_7 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_10, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7); __pyx_t_7 = NULL;
+        __Pyx_INCREF(__pyx_v_name);
+        __Pyx_GIVEREF(__pyx_v_name);
+        PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_v_name);
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __pyx_r = __pyx_t_1;
       __pyx_t_1 = 0;
       goto __pyx_L8_try_return;
 
-      /* "pycimport.pyx":43
+      /* "pycimport.pyx":44
  *         return None
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -1436,13 +1460,12 @@ PyObject *loadModule(char *__pyx_v_name) {
  */
     }
     __pyx_L4_error:;
-    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pycimport.pyx":45
+    /* "pycimport.pyx":46
  *     try:
  *         return importlib.import_module(name)
  *     except:             # <<<<<<<<<<<<<<
@@ -1451,38 +1474,35 @@ PyObject *loadModule(char *__pyx_v_name) {
  */
     /*except:*/ {
       __Pyx_AddTraceback("pycimport.loadModule", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_10) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_GOTREF(__pyx_t_10);
+      __Pyx_GOTREF(__pyx_t_9);
 
-      /* "pycimport.pyx":46
+      /* "pycimport.pyx":47
  *         return importlib.import_module(name)
  *     except:
  *         raise Exception(name+"could not be loaded")             # <<<<<<<<<<<<<<
  * 
- * cdef public bint callableMethod(obj,char *name):
+ * cdef public bint callableMethod(obj,char *nname):
  */
-      __pyx_t_7 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+      __pyx_t_7 = PyNumber_Add(__pyx_v_name, __pyx_kp_s_could_not_be_loaded); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_9 = PyNumber_Add(__pyx_t_7, __pyx_kp_s_could_not_be_loaded); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
-      __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+      __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __Pyx_GIVEREF(__pyx_t_7);
+      PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_7);
+      __pyx_t_7 = 0;
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_Exception, __pyx_t_10, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_GIVEREF(__pyx_t_9);
-      PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_9);
-      __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_Exception, __pyx_t_7, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
-      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_Raise(__pyx_t_7, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_Raise(__pyx_t_9, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
     }
     __pyx_L6_except_error:;
 
-    /* "pycimport.pyx":43
+    /* "pycimport.pyx":44
  *         return None
  * 
  *     try:             # <<<<<<<<<<<<<<
@@ -1505,7 +1525,7 @@ PyObject *loadModule(char *__pyx_v_name) {
   /* "pycimport.pyx":37
  *     return inspect.ismodule(obj)
  * 
- * cdef public loadModule(char *name):             # <<<<<<<<<<<<<<
+ * cdef public loadModule(char *nname):             # <<<<<<<<<<<<<<
  *     """ Load a python modul from current directory
  *     """
  */
@@ -1520,57 +1540,67 @@ PyObject *loadModule(char *__pyx_v_name) {
   __Pyx_AddTraceback("pycimport.loadModule", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pycimport.pyx":48
+/* "pycimport.pyx":49
  *         raise Exception(name+"could not be loaded")
  * 
- * cdef public bint callableMethod(obj,char *name):             # <<<<<<<<<<<<<<
+ * cdef public bint callableMethod(obj,char *nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
- *     if isMethod(method):
  */
 
-int callableMethod(PyObject *__pyx_v_obj, char *__pyx_v_name) {
+int callableMethod(PyObject *__pyx_v_obj, char *__pyx_v_nname) {
+  PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_v_method = NULL;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  int __pyx_t_3;
+  int __pyx_t_2;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("callableMethod", 0);
 
-  /* "pycimport.pyx":49
+  /* "pycimport.pyx":50
  * 
- * cdef public bint callableMethod(obj,char *name):
+ * cdef public bint callableMethod(obj,char *nname):
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     method = getattr(obj, name)
+ *     if isMethod(method):
+ */
+  __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_nname, 0, strlen(__pyx_v_nname), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_name = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pycimport.pyx":51
+ * cdef public bint callableMethod(obj,char *nname):
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)             # <<<<<<<<<<<<<<
  *     if isMethod(method):
  *         return True
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetAttr(__pyx_v_obj, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetAttr(__pyx_v_obj, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_method = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __pyx_v_method = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "pycimport.pyx":50
- * cdef public bint callableMethod(obj,char *name):
+  /* "pycimport.pyx":52
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
  *     if isMethod(method):             # <<<<<<<<<<<<<<
  *         return True
  *     return False
  */
-  __pyx_t_3 = (isMethod(__pyx_v_method) != 0);
-  if (__pyx_t_3) {
+  __pyx_t_2 = (isMethod(__pyx_v_method) != 0);
+  if (__pyx_t_2) {
 
-    /* "pycimport.pyx":51
+    /* "pycimport.pyx":53
  *     method = getattr(obj, name)
  *     if isMethod(method):
  *         return True             # <<<<<<<<<<<<<<
@@ -1580,8 +1610,8 @@ int callableMethod(PyObject *__pyx_v_obj, char *__pyx_v_name) {
     __pyx_r = 1;
     goto __pyx_L0;
 
-    /* "pycimport.pyx":50
- * cdef public bint callableMethod(obj,char *name):
+    /* "pycimport.pyx":52
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
  *     if isMethod(method):             # <<<<<<<<<<<<<<
  *         return True
@@ -1589,45 +1619,46 @@ int callableMethod(PyObject *__pyx_v_obj, char *__pyx_v_name) {
  */
   }
 
-  /* "pycimport.pyx":52
+  /* "pycimport.pyx":54
  *     if isMethod(method):
  *         return True
  *     return False             # <<<<<<<<<<<<<<
  * 
- * cdef public getParameter(obj, char *name):
+ * cdef public getParameter(obj, char *nname):
  */
   __pyx_r = 0;
   goto __pyx_L0;
 
-  /* "pycimport.pyx":48
+  /* "pycimport.pyx":49
  *         raise Exception(name+"could not be loaded")
  * 
- * cdef public bint callableMethod(obj,char *name):             # <<<<<<<<<<<<<<
+ * cdef public bint callableMethod(obj,char *nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
- *     if isMethod(method):
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_WriteUnraisable("pycimport.callableMethod", __pyx_clineno, __pyx_lineno, __pyx_filename, 0, 0);
   __pyx_r = 0;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
   __Pyx_XDECREF(__pyx_v_method);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pycimport.pyx":54
+/* "pycimport.pyx":56
  *     return False
  * 
- * cdef public getParameter(obj, char *name):             # <<<<<<<<<<<<<<
+ * cdef public getParameter(obj, char *nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
- *     return inspect.getargspec(method).args
  */
 
-PyObject *getParameter(PyObject *__pyx_v_obj, char *__pyx_v_name) {
+PyObject *getParameter(PyObject *__pyx_v_obj, char *__pyx_v_nname) {
+  PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_v_method = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -1640,72 +1671,81 @@ PyObject *getParameter(PyObject *__pyx_v_obj, char *__pyx_v_name) {
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("getParameter", 0);
 
-  /* "pycimport.pyx":55
+  /* "pycimport.pyx":57
  * 
- * cdef public getParameter(obj, char *name):
+ * cdef public getParameter(obj, char *nname):
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     method = getattr(obj, name)
+ *     return inspect.getargspec(method).args
+ */
+  __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_nname, 0, strlen(__pyx_v_nname), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_name = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pycimport.pyx":58
+ * cdef public getParameter(obj, char *nname):
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)             # <<<<<<<<<<<<<<
  *     return inspect.getargspec(method).args
  * 
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetAttr(__pyx_v_obj, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetAttr(__pyx_v_obj, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_method = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __pyx_v_method = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "pycimport.pyx":56
- * cdef public getParameter(obj, char *name):
+  /* "pycimport.pyx":59
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
  *     return inspect.getargspec(method).args             # <<<<<<<<<<<<<<
  * 
- * cdef public bint hasParameter(obj, name):
+ * cdef public bint hasParameter(obj, nname):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_inspect); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getargspec); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_inspect); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_getargspec); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = NULL;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_1)) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
       PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(function);
       __Pyx_DECREF_SET(__pyx_t_3, function);
     }
   }
-  if (!__pyx_t_1) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_method); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
+  if (!__pyx_t_2) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_method); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1); __pyx_t_1 = NULL;
+    __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
     __Pyx_INCREF(__pyx_v_method);
     __Pyx_GIVEREF(__pyx_v_method);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_method);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_args); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_args); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pycimport.pyx":54
+  /* "pycimport.pyx":56
  *     return False
  * 
- * cdef public getParameter(obj, char *name):             # <<<<<<<<<<<<<<
+ * cdef public getParameter(obj, char *nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
- *     return inspect.getargspec(method).args
  */
 
   /* function exit code */
@@ -1717,47 +1757,65 @@ PyObject *getParameter(PyObject *__pyx_v_obj, char *__pyx_v_name) {
   __Pyx_AddTraceback("pycimport.getParameter", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
   __Pyx_XDECREF(__pyx_v_method);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pycimport.pyx":58
+/* "pycimport.pyx":61
  *     return inspect.getargspec(method).args
  * 
- * cdef public bint hasParameter(obj, name):             # <<<<<<<<<<<<<<
+ * cdef public bint hasParameter(obj, nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     if getParameter(obj, name):
- *         return True
  */
 
-int hasParameter(PyObject *__pyx_v_obj, PyObject *__pyx_v_name) {
+int hasParameter(PyObject *__pyx_v_obj, PyObject *__pyx_v_nname) {
+  PyObject *__pyx_v_name = NULL;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
-  char *__pyx_t_1;
+  PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  int __pyx_t_3;
+  char *__pyx_t_3;
+  int __pyx_t_4;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("hasParameter", 0);
 
-  /* "pycimport.pyx":59
+  /* "pycimport.pyx":62
  * 
- * cdef public bint hasParameter(obj, name):
+ * cdef public bint hasParameter(obj, nname):
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     if getParameter(obj, name):
+ *         return True
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_nname, __pyx_n_s_decode); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_name = __pyx_t_2;
+  __pyx_t_2 = 0;
+
+  /* "pycimport.pyx":63
+ * cdef public bint hasParameter(obj, nname):
+ *     name = nname.decode("UTF-8")
  *     if getParameter(obj, name):             # <<<<<<<<<<<<<<
  *         return True
  *     return False
  */
-  __pyx_t_1 = __Pyx_PyObject_AsString(__pyx_v_name); if (unlikely((!__pyx_t_1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = getParameter(__pyx_v_obj, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_AsString(__pyx_v_name); if (unlikely((!__pyx_t_3) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = getParameter(__pyx_v_obj, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__pyx_t_3) {
+  if (__pyx_t_4) {
 
-    /* "pycimport.pyx":60
- * cdef public bint hasParameter(obj, name):
+    /* "pycimport.pyx":64
+ *     name = nname.decode("UTF-8")
  *     if getParameter(obj, name):
  *         return True             # <<<<<<<<<<<<<<
  *     return False
@@ -1766,90 +1824,102 @@ int hasParameter(PyObject *__pyx_v_obj, PyObject *__pyx_v_name) {
     __pyx_r = 1;
     goto __pyx_L0;
 
-    /* "pycimport.pyx":59
- * 
- * cdef public bint hasParameter(obj, name):
+    /* "pycimport.pyx":63
+ * cdef public bint hasParameter(obj, nname):
+ *     name = nname.decode("UTF-8")
  *     if getParameter(obj, name):             # <<<<<<<<<<<<<<
  *         return True
  *     return False
  */
   }
 
-  /* "pycimport.pyx":61
+  /* "pycimport.pyx":65
  *     if getParameter(obj, name):
  *         return True
  *     return False             # <<<<<<<<<<<<<<
  * 
- * cdef public callMethod(obj, char *name):
+ * cdef public callMethod(obj, char *nname):
  */
   __pyx_r = 0;
   goto __pyx_L0;
 
-  /* "pycimport.pyx":58
+  /* "pycimport.pyx":61
  *     return inspect.getargspec(method).args
  * 
- * cdef public bint hasParameter(obj, name):             # <<<<<<<<<<<<<<
+ * cdef public bint hasParameter(obj, nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     if getParameter(obj, name):
- *         return True
  */
 
   /* function exit code */
   __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_WriteUnraisable("pycimport.hasParameter", __pyx_clineno, __pyx_lineno, __pyx_filename, 0, 0);
   __pyx_r = 0;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pycimport.pyx":63
+/* "pycimport.pyx":67
  *     return False
  * 
- * cdef public callMethod(obj, char *name):             # <<<<<<<<<<<<<<
+ * cdef public callMethod(obj, char *nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
- *     if isMethod(method):
  */
 
-PyObject *callMethod(PyObject *__pyx_v_obj, char *__pyx_v_name) {
+PyObject *callMethod(PyObject *__pyx_v_obj, char *__pyx_v_nname) {
+  PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_v_method = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  int __pyx_t_3;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("callMethod", 0);
 
-  /* "pycimport.pyx":64
+  /* "pycimport.pyx":68
  * 
- * cdef public callMethod(obj, char *name):
+ * cdef public callMethod(obj, char *nname):
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     method = getattr(obj, name)
+ *     if isMethod(method):
+ */
+  __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_nname, 0, strlen(__pyx_v_nname), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 68; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_name = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pycimport.pyx":69
+ * cdef public callMethod(obj, char *nname):
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)             # <<<<<<<<<<<<<<
  *     if isMethod(method):
  *         return method()
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetAttr(__pyx_v_obj, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 69; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetAttr(__pyx_v_obj, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_method = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __pyx_v_method = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "pycimport.pyx":65
- * cdef public callMethod(obj, char *name):
+  /* "pycimport.pyx":70
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
  *     if isMethod(method):             # <<<<<<<<<<<<<<
  *         return method()
  *     return None
  */
-  __pyx_t_3 = (isMethod(__pyx_v_method) != 0);
-  if (__pyx_t_3) {
+  __pyx_t_2 = (isMethod(__pyx_v_method) != 0);
+  if (__pyx_t_2) {
 
-    /* "pycimport.pyx":66
+    /* "pycimport.pyx":71
  *     method = getattr(obj, name)
  *     if isMethod(method):
  *         return method()             # <<<<<<<<<<<<<<
@@ -1858,30 +1928,30 @@ PyObject *callMethod(PyObject *__pyx_v_obj, char *__pyx_v_name) {
  */
     __Pyx_XDECREF(__pyx_r);
     __Pyx_INCREF(__pyx_v_method);
-    __pyx_t_1 = __pyx_v_method; __pyx_t_4 = NULL;
-    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
-      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
+    __pyx_t_3 = __pyx_v_method; __pyx_t_4 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
       if (likely(__pyx_t_4)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
         __Pyx_INCREF(__pyx_t_4);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_1, function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
       }
     }
     if (__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_r = __pyx_t_2;
-    __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "pycimport.pyx":65
- * cdef public callMethod(obj, char *name):
+    /* "pycimport.pyx":70
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
  *     if isMethod(method):             # <<<<<<<<<<<<<<
  *         return method()
@@ -1889,55 +1959,57 @@ PyObject *callMethod(PyObject *__pyx_v_obj, char *__pyx_v_name) {
  */
   }
 
-  /* "pycimport.pyx":67
+  /* "pycimport.pyx":72
  *     if isMethod(method):
  *         return method()
  *     return None             # <<<<<<<<<<<<<<
  * 
- * cdef public callMethodArgs(obj, char* name, tuple args):
+ * cdef public callMethodArgs(obj, char* nname, tuple args):
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(Py_None);
   __pyx_r = Py_None;
   goto __pyx_L0;
 
-  /* "pycimport.pyx":63
+  /* "pycimport.pyx":67
  *     return False
  * 
- * cdef public callMethod(obj, char *name):             # <<<<<<<<<<<<<<
+ * cdef public callMethod(obj, char *nname):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     method = getattr(obj, name)
- *     if isMethod(method):
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_AddTraceback("pycimport.callMethod", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
   __Pyx_XDECREF(__pyx_v_method);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pycimport.pyx":69
+/* "pycimport.pyx":74
  *     return None
  * 
- * cdef public callMethodArgs(obj, char* name, tuple args):             # <<<<<<<<<<<<<<
+ * cdef public callMethodArgs(obj, char* nname, tuple args):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     a = getParameter(obj, name)
- *     method = getattr(obj, name)
  */
 
-PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__pyx_v_args) {
+PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_nname, PyObject *__pyx_v_args) {
+  PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_v_a = NULL;
   PyObject *__pyx_v_method = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
+  char *__pyx_t_2;
   Py_ssize_t __pyx_t_3;
   Py_ssize_t __pyx_t_4;
   int __pyx_t_5;
@@ -1946,50 +2018,60 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("callMethodArgs", 0);
 
-  /* "pycimport.pyx":70
+  /* "pycimport.pyx":75
  * 
- * cdef public callMethodArgs(obj, char* name, tuple args):
+ * cdef public callMethodArgs(obj, char* nname, tuple args):
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     a = getParameter(obj, name)
+ *     method = getattr(obj, name)
+ */
+  __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_nname, 0, strlen(__pyx_v_nname), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_name = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "pycimport.pyx":76
+ * cdef public callMethodArgs(obj, char* nname, tuple args):
+ *     name = nname.decode("UTF-8")
  *     a = getParameter(obj, name)             # <<<<<<<<<<<<<<
  *     method = getattr(obj, name)
  *     if len(a) != len(args):
  */
-  __pyx_t_1 = getParameter(__pyx_v_obj, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 70; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_AsString(__pyx_v_name); if (unlikely((!__pyx_t_2) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = getParameter(__pyx_v_obj, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_a = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "pycimport.pyx":71
- * cdef public callMethodArgs(obj, char* name, tuple args):
+  /* "pycimport.pyx":77
+ *     name = nname.decode("UTF-8")
  *     a = getParameter(obj, name)
  *     method = getattr(obj, name)             # <<<<<<<<<<<<<<
  *     if len(a) != len(args):
  *         return None
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetAttr(__pyx_v_obj, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetAttr(__pyx_v_obj, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_method = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __pyx_v_method = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "pycimport.pyx":72
+  /* "pycimport.pyx":78
  *     a = getParameter(obj, name)
  *     method = getattr(obj, name)
  *     if len(a) != len(args):             # <<<<<<<<<<<<<<
  *         return None
  *     if isMethod(method):
  */
-  __pyx_t_3 = PyObject_Length(__pyx_v_a); if (unlikely(__pyx_t_3 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyObject_Length(__pyx_v_a); if (unlikely(__pyx_t_3 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_t_4 = PyTuple_GET_SIZE(__pyx_v_args); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_GET_SIZE(__pyx_v_args); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_5 = ((__pyx_t_3 != __pyx_t_4) != 0);
   if (__pyx_t_5) {
 
-    /* "pycimport.pyx":73
+    /* "pycimport.pyx":79
  *     method = getattr(obj, name)
  *     if len(a) != len(args):
  *         return None             # <<<<<<<<<<<<<<
@@ -2001,7 +2083,7 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
     __pyx_r = Py_None;
     goto __pyx_L0;
 
-    /* "pycimport.pyx":72
+    /* "pycimport.pyx":78
  *     a = getParameter(obj, name)
  *     method = getattr(obj, name)
  *     if len(a) != len(args):             # <<<<<<<<<<<<<<
@@ -2010,7 +2092,7 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
  */
   }
 
-  /* "pycimport.pyx":74
+  /* "pycimport.pyx":80
  *     if len(a) != len(args):
  *         return None
  *     if isMethod(method):             # <<<<<<<<<<<<<<
@@ -2019,7 +2101,7 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
   __pyx_t_5 = (isMethod(__pyx_v_method) != 0);
   if (__pyx_t_5) {
 
-    /* "pycimport.pyx":75
+    /* "pycimport.pyx":81
  *         return None
  *     if isMethod(method):
  *         return method(*args)             # <<<<<<<<<<<<<<
@@ -2027,15 +2109,15 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
     __Pyx_XDECREF(__pyx_r);
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_v_method, __pyx_v_args, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_r = __pyx_t_2;
-    __pyx_t_2 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_v_method, __pyx_v_args, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "pycimport.pyx":74
+    /* "pycimport.pyx":80
  *     if len(a) != len(args):
  *         return None
  *     if isMethod(method):             # <<<<<<<<<<<<<<
@@ -2043,12 +2125,12 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
  */
   }
 
-  /* "pycimport.pyx":69
+  /* "pycimport.pyx":74
  *     return None
  * 
- * cdef public callMethodArgs(obj, char* name, tuple args):             # <<<<<<<<<<<<<<
+ * cdef public callMethodArgs(obj, char* nname, tuple args):             # <<<<<<<<<<<<<<
+ *     name = nname.decode("UTF-8")
  *     a = getParameter(obj, name)
- *     method = getattr(obj, name)
  */
 
   /* function exit code */
@@ -2056,10 +2138,10 @@ PyObject *callMethodArgs(PyObject *__pyx_v_obj, char *__pyx_v_name, PyObject *__
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
   __Pyx_AddTraceback("pycimport.callMethodArgs", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_name);
   __Pyx_XDECREF(__pyx_v_a);
   __Pyx_XDECREF(__pyx_v_method);
   __Pyx_XGIVEREF(__pyx_r);
@@ -2092,9 +2174,10 @@ static struct PyModuleDef __pyx_moduledef = {
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
   {&__pyx_n_s_Exception, __pyx_k_Exception, sizeof(__pyx_k_Exception), 0, 0, 1, 1},
-  {&__pyx_n_s_append, __pyx_k_append, sizeof(__pyx_k_append), 0, 0, 1, 1},
+  {&__pyx_kp_s_UTF_8, __pyx_k_UTF_8, sizeof(__pyx_k_UTF_8), 0, 0, 1, 0},
   {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
   {&__pyx_kp_s_could_not_be_loaded, __pyx_k_could_not_be_loaded, sizeof(__pyx_k_could_not_be_loaded), 0, 0, 1, 0},
+  {&__pyx_n_s_decode, __pyx_k_decode, sizeof(__pyx_k_decode), 0, 0, 1, 1},
   {&__pyx_n_s_getargspec, __pyx_k_getargspec, sizeof(__pyx_k_getargspec), 0, 0, 1, 1},
   {&__pyx_n_s_getcwd, __pyx_k_getcwd, sizeof(__pyx_k_getcwd), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
@@ -2112,7 +2195,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -2121,8 +2204,22 @@ static int __Pyx_InitCachedBuiltins(void) {
 static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
+
+  /* "pycimport.pyx":62
+ * 
+ * cdef public bint hasParameter(obj, nname):
+ *     name = nname.decode("UTF-8")             # <<<<<<<<<<<<<<
+ *     if getParameter(obj, name):
+ *         return True
+ */
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_UTF_8); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__2);
+  __Pyx_GIVEREF(__pyx_tuple__2);
   __Pyx_RefNannyFinishContext();
   return 0;
+  __pyx_L1_error:;
+  __Pyx_RefNannyFinishContext();
+  return -1;
 }
 
 static int __Pyx_InitGlobals(void) {
@@ -2458,49 +2555,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
     return __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL);
 }
 #endif
-
-static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg) {
-    PyObject *method, *result = NULL;
-    method = __Pyx_PyObject_GetAttrStr(obj, method_name);
-    if (unlikely(!method)) goto bad;
-#if CYTHON_COMPILING_IN_CPYTHON
-    if (likely(PyMethod_Check(method))) {
-        PyObject *self = PyMethod_GET_SELF(method);
-        if (likely(self)) {
-            PyObject *args;
-            PyObject *function = PyMethod_GET_FUNCTION(method);
-            args = PyTuple_New(2);
-            if (unlikely(!args)) goto bad;
-            Py_INCREF(self);
-            PyTuple_SET_ITEM(args, 0, self);
-            Py_INCREF(arg);
-            PyTuple_SET_ITEM(args, 1, arg);
-            Py_INCREF(function);
-            Py_DECREF(method); method = NULL;
-            result = __Pyx_PyObject_Call(function, args, NULL);
-            Py_DECREF(args);
-            Py_DECREF(function);
-            return result;
-        }
-    }
-#endif
-    result = __Pyx_PyObject_CallOneArg(method, arg);
-bad:
-    Py_XDECREF(method);
-    return result;
-}
-
-static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x) {
-    if (likely(PyList_CheckExact(L))) {
-        if (unlikely(__Pyx_PyList_Append(L, x) < 0)) return -1;
-    } else {
-        PyObject* retval = __Pyx_PyObject_CallMethod1(L, __pyx_n_s_append, x);
-        if (unlikely(!retval))
-            return -1;
-        Py_DECREF(retval);
-    }
-    return 0;
-}
 
 static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb) {
 #if CYTHON_COMPILING_IN_CPYTHON
