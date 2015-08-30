@@ -1,0 +1,18 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CC	/home/ben/workspace/pycimporter/Makefile	/^CC = gcc$/;"	macro	line:1
+CFLAG	/home/ben/workspace/pycimporter/Makefile	/^CFLAG = -std=c11 -g -Wall -pedantic -O2$/;"	macro	line:2
+LFLAG	/home/ben/workspace/pycimporter/Makefile	/^LFLAG = -lm -lGL -lglut$/;"	macro	line:3
+LDFLAG	/home/ben/workspace/pycimporter/Makefile	/^LDFLAG = -I$(SRCDIR)$/;"	macro	line:4
+TARGET	/home/ben/workspace/pycimporter/Makefile	/^TARGET = startMe.out$/;"	macro	line:5
+SRCDIR	/home/ben/workspace/pycimporter/Makefile	/^SRCDIR = src$/;"	macro	line:6
+OBJDIR	/home/ben/workspace/pycimporter/Makefile	/^OBJDIR = obj$/;"	macro	line:7
+BINDIR	/home/ben/workspace/pycimporter/Makefile	/^BINDIR = bin$/;"	macro	line:8
+RM	/home/ben/workspace/pycimporter/Makefile	/^RM = rm -f$/;"	macro	line:9
+SRC	/home/ben/workspace/pycimporter/Makefile	/^SRC = $(wildcard $(SRCDIR)\/*.c)$/;"	macro	line:10
+INCLUDES	/home/ben/workspace/pycimporter/Makefile	/^INCLUDES = $(wildcard $(SRCDIR)\/*.h)$/;"	macro	line:11
+OBJ	/home/ben/workspace/pycimporter/Makefile	/^OBJ = $(SRC:$(SRCDIR)\/%.c=$(OBJDIR)\/%.o)$/;"	macro	line:12
