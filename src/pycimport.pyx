@@ -37,6 +37,22 @@ cdef public bint isModul(obj):
         return False
     return inspect.ismodule(obj)
 
+cdef public object newClass(module, char *nname, tuple args):
+    name = nname.decode("UTF-8")
+    obj = getattr(module, name)
+
+    if isClass(obj):
+        cl = obj(*args)
+        return cl
+    return None
+
+
+cdef public object callObjMethod(object obj, char *nname, tuple args):
+    name = nname.decode("UTF-8")
+    if not hasattr(obj, name):
+        return None
+    objM = getattr(obj, name)
+    objM(*args)
 
 cdef public loadModule(char * nname):
     """ Load a python modul from current directory
@@ -51,10 +67,11 @@ cdef public loadModule(char * nname):
         raise Exception(name + "could not be loaded")
 
 
-cdef public bint callableMethod(obj, char * nname):
+cdef public bint isCallableObject(obj, char * nname):
     name = nname.decode("UTF-8")
     method = getattr(obj, name)
-    if isMethod(method):
+
+    if isMethod(method) or isClass(method):
         return True
     return False
 
@@ -72,20 +89,28 @@ cdef public bint hasParameter(obj, nname):
     return False
 
 
-cdef public callMethod(obj, char * nname):
+cdef public callObject(obj, char * nname):
     name = nname.decode("UTF-8")
     method = getattr(obj, name)
+
+    if isClass(obj) and isMethod(method):
+        return obj.method()
     if isMethod(method):
         return method()
+    if isClass(method):
+        cl = method.__init__(method)
+        return cl
     return None
 
 
-cdef public callMethodArgs(obj, char * nname, tuple args):
+cdef public callObjectArgs(obj, char * nname, tuple args):
     name = nname.decode("UTF-8")
     a = getParameter(obj, nname)
     method = getattr(obj, name)
-
-    if len(a) != len(args):
-        return None
+    if isClass(obj) and isMethod(method):
+        return obj.method( args)
     if isMethod(method):
         return method(*args)
+    if isClass(method):
+        cl = method.__init__(method, *args)
+        return cl
