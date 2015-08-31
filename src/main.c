@@ -18,35 +18,32 @@ int main(int argc, char const *argv[]) {
     m = loadModule("foo");
     argu = Py_BuildValue("(is)", a, b);
 
-    if(isCallableObject(m, "bar")){
-        callObject(m, "bar");
+
+    if(isCallableObject(m, "bar")) {
+        callMethodArgs(m, "bar", Py_BuildValue("()"));
     }
-    if(isCallableObject(m, "spam")){
-        callObjectArgs(m, "spam", argu);
+    if(isCallableObject(m, "spam")) {
+        callMethodArgs(m, "spam", argu);
         Py_DECREF(argu);
     }
 
     argu = Py_BuildValue("(i)", 42);
     PyObject *cl;
-    if (isCallableObject(m, "A")){
+    if (isCallableObject(m, "A")) {
         argu = Py_BuildValue("(i)", 42);
-        cl = newClass(m, "A", argu);
+        cl = newCls(m, "A", argu);
         printf("calling methods\n");
 
-        callObjMethod(cl, "setA", Py_BuildValue("(i)", 10));
+        callClsMethod(cl, "setA", Py_BuildValue("(i)", 10));
 
-        callObjMethod(cl, "printA", Py_BuildValue("()"));
-        /*
-        if(isCallableObject(cl, "printA")){
-            callObject(cl, "printA");
-        }
-        */
+        callClsMethod(cl, "printA", Py_BuildValue("()"));
+
         Py_DECREF(argu);
         Py_DECREF(cl);
     }
 
-    if (isCallableObject(m, "B")){
-        cl = callObject(m, "B");
+    if (isCallableObject(m, "B")) {
+        cl = newCls(m, "B", Py_BuildValue("()"));
         Py_DECREF(cl);
     }
 

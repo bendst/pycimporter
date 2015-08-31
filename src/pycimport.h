@@ -23,14 +23,14 @@ __PYX_EXTERN_C DL_IMPORT(PyObject) *listAttr(PyObject *);
 __PYX_EXTERN_C DL_IMPORT(int) isClass(PyObject *);
 __PYX_EXTERN_C DL_IMPORT(int) isMethod(PyObject *);
 __PYX_EXTERN_C DL_IMPORT(int) isModul(PyObject *);
-__PYX_EXTERN_C DL_IMPORT(PyObject) *newClass(PyObject *, char *, PyObject *);
-__PYX_EXTERN_C DL_IMPORT(PyObject) *callObjMethod(PyObject *, char *, PyObject *);
+__PYX_EXTERN_C DL_IMPORT(PyObject) *callObj(PyObject *, char *, PyObject *);
+__PYX_EXTERN_C DL_IMPORT(PyObject) *newCls(PyObject *, char *, PyObject *);
+__PYX_EXTERN_C DL_IMPORT(PyObject) *callClsMethod(PyObject *, char *, PyObject *);
+__PYX_EXTERN_C DL_IMPORT(PyObject) *callMethodArgs(PyObject *, char *, PyObject *);
 __PYX_EXTERN_C DL_IMPORT(PyObject) *loadModule(char *);
 __PYX_EXTERN_C DL_IMPORT(int) isCallableObject(PyObject *, char *);
 __PYX_EXTERN_C DL_IMPORT(PyObject) *getParameter(PyObject *, char *);
 __PYX_EXTERN_C DL_IMPORT(int) hasParameter(PyObject *, PyObject *);
-__PYX_EXTERN_C DL_IMPORT(PyObject) *callObject(PyObject *, char *);
-__PYX_EXTERN_C DL_IMPORT(PyObject) *callObjectArgs(PyObject *, char *, PyObject *);
 
 #endif /* !__PYX_HAVE_API__pycimport */
 

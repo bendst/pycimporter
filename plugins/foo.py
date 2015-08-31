@@ -7,9 +7,8 @@ def bar():
 
 
 def spam(a, b):
-    #print("1 ", a, "2 ", b)
-    #print(type(a), type(b))
-    #print(sys.getrefcount(__file__))
+    print("1 ", a, "2 ", b)
+    print(type(a), type(b))
     pass
 
 
